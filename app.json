@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "BudgetFlow",
+    "slug": "finance-manager-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0E14",
+    "splash": {
+      "backgroundColor": "#0B0E14"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0E14"
+      }
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
