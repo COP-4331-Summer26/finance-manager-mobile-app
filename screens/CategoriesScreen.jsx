@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { getCategories, addCategory, editCategory } from '../api/misc';
+import { getCategories, addCategory, editCategory, deleteCategory } from '../api/misc';
+import { useConfirm } from '../context/ConfirmContext';
 import { Field, Card } from '../components/Primitives';
 import FormSheet from '../components/FormSheet';
 import ColorSwatchPicker, { CATEGORY_COLORS } from '../components/ColorSwatchPicker';
@@ -9,6 +10,7 @@ import FAB from '../components/FAB';
 import { colors, spacing, font } from '../theme';
 
 export default function CategoriesScreen() {
+  const confirm = useConfirm();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null); // 'new' | category | null
@@ -59,6 +61,24 @@ export default function CategoriesScreen() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!editing || editing === 'new') return;
+    const target = editing;
+    setEditing(null); // close the edit sheet first — RN can't show a second Modal on top of an open one
+    await new Promise((r) => setTimeout(r, 300)); // let the sheet finish its close animation
+    const ok = await confirm({
+      title: 'Delete category?',
+      message: `Delete "${target.name}"? Transactions using it will keep the old category name.`,
+    });
+    if (!ok) return;
+    try {
+      await deleteCategory(target.id);
+      await load();
+    } catch (e) {
+      console.error('deleteCategory error:', e);
+    }
+  };
+
   return (
     <View style={styles.flex}>
       <View style={styles.header}>
@@ -103,6 +123,12 @@ export default function CategoriesScreen() {
           onChangeText={(v) => setForm((f) => ({ ...f, limit: v }))}
         />
         <ColorSwatchPicker value={form.color} onChange={(c) => setForm((f) => ({ ...f, color: c }))} />
+
+        {editing !== 'new' && (
+          <Pressable onPress={handleDelete} style={styles.deleteBtn} disabled={saving}>
+            <Text style={styles.deleteBtnText}>Delete category</Text>
+          </Pressable>
+        )}
       </FormSheet>
     </View>
   );
@@ -118,4 +144,13 @@ const styles = StyleSheet.create({
   name: { color: colors.text, fontSize: font.md, fontWeight: '600', flex: 1 },
   limit: { color: colors.textMuted, fontSize: font.sm },
   empty: { color: colors.textMuted, textAlign: 'center' },
+  deleteBtn: {
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    marginTop: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    borderRadius: 10,
+  },
+  deleteBtnText: { color: colors.danger, fontSize: font.sm, fontWeight: '700' },
 });

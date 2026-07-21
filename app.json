@@ -15,10 +15,16 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0B0E14"
-      }
+      },
+      "package": "com.augustsr.financemanagermobile"
     },
     "plugins": [
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "90f09de1-a7d0-4ca0-b9e1-18cbd3583bef"
+      }
+    }
   }
 }
