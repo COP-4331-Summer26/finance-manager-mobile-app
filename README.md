@@ -162,9 +162,6 @@
 
 # \## Known Issues / In Progress
 
-# \- Confirm no leftover keyboard-avoidance issues on the Add Income screen specifically
-
-# \- Investigate a warning banner appearing at the bottom of one screen
 
 # \- Backend not yet connected to the team's shared production MongoDB cluster (currently using a local/test cluster pending access)
 
