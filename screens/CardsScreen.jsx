@@ -1,13 +1,15 @@
 import { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { getCards, addCard } from '../api/misc';
+import { getCards, addCard, deleteCard } from '../api/misc';
+import { useConfirm } from '../context/ConfirmContext';
 import { Field, Card } from '../components/Primitives';
 import FormSheet from '../components/FormSheet';
 import FAB from '../components/FAB';
 import { colors, spacing, radius, font } from '../theme';
 
 export default function CardsScreen() {
+  const confirm = useConfirm();
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -65,6 +67,16 @@ export default function CardsScreen() {
     }
   };
 
+  const handleDelete = async (card) => {
+    const ok = await confirm({
+      title: 'Delete card?',
+      message: `Remove "${card.name}" ending in ${card.last4}?`,
+    });
+    if (!ok) return;
+    await deleteCard(card.id);
+    load();
+  };
+
   return (
     <View style={styles.flex}>
       <View style={styles.header}>
@@ -81,18 +93,22 @@ export default function CardsScreen() {
           <Card><Text style={styles.empty}>No cards linked yet. Tap + to add one.</Text></Card>
         )}
         renderItem={({ item: c }) => (
-          <View style={styles.tile}>
-            <View style={styles.tileRow}>
-              <Text style={styles.tileName}>{c.name}</Text>
-              <Text style={styles.tileMono}>•••• {c.last4}</Text>
+          <Pressable onLongPress={() => handleDelete(c)}>
+            <View style={styles.tile}>
+              <View style={styles.tileRow}>
+                <Text style={styles.tileName}>{c.name}</Text>
+                <Text style={styles.tileMono}>•••• {c.last4}</Text>
+              </View>
+              <View style={styles.tileRow}>
+                <Text style={styles.tileMono}>Limit ${c.limit}</Text>
+                <Text style={styles.tileMono}>Statement day {c.statementDate}</Text>
+              </View>
             </View>
-            <View style={styles.tileRow}>
-              <Text style={styles.tileMono}>Limit ${c.limit}</Text>
-              <Text style={styles.tileMono}>Statement day {c.statementDate}</Text>
-            </View>
-          </View>
+          </Pressable>
         )}
       />
+
+      <Text style={styles.hint}>Long-press a card to delete</Text>
 
       <FAB onPress={startNew} />
 
@@ -146,4 +162,5 @@ const styles = StyleSheet.create({
   tileRow: { flexDirection: 'row', justifyContent: 'space-between' },
   tileName: { color: '#fff', fontWeight: '700', fontSize: font.md },
   tileMono: { color: 'rgba(255,255,255,0.75)', fontSize: font.sm },
+  hint: { color: colors.textMuted, fontSize: font.sm, textAlign: 'center', paddingBottom: spacing.sm },
 });

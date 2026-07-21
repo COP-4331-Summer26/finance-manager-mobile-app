@@ -8,18 +8,30 @@ export default function DonutChart({ data, size = 200, strokeWidth = 22, centerL
   const circumference = 2 * Math.PI * radius;
   const gap = 3;
 
-  let cumulativeAngle = 0;
+  let cumulativeLength = 0;
 
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size} height={size}>
         <G rotation={-90} originX={size / 2} originY={size / 2}>
+          {/* background track so the ring always reads as a full circle */}
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={colors.border || '#2A2E3A'}
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
           {data.map((d, i) => {
             const value = d.spent || 0;
             const fraction = value / total;
             const segmentLength = Math.max(0, fraction * circumference - gap);
-            const offset = circumference - (cumulativeAngle / 360) * circumference;
-            cumulativeAngle += fraction * 360;
+            const dashOffset = -cumulativeLength;
+            cumulativeLength += fraction * circumference;
+
+            if (segmentLength <= 0) return null;
+
             return (
               <Circle
                 key={i}
@@ -28,8 +40,8 @@ export default function DonutChart({ data, size = 200, strokeWidth = 22, centerL
                 r={radius}
                 stroke={d.color}
                 strokeWidth={strokeWidth}
-                strokeDasharray={`${segmentLength} ${circumference}`}
-                strokeDashoffset={offset}
+                strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
+                strokeDashoffset={dashOffset}
                 strokeLinecap="round"
                 fill="none"
               />
